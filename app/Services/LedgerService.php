@@ -85,9 +85,10 @@ class LedgerService
         return DB::transaction(function () use ($client, $amount) {
             $this->lock($client);
 
-            if ($amount > $this->balance($client)) {
+            $balance = $this->balance($client);
+            if ($amount > $balance) {
                 throw new InsufficientFundsException(
-                    "Cannot withdraw {$amount}: available balance is {$this->balance($client)}."
+                    "Cannot withdraw {$amount}: available balance is {$balance}."
                 );
             }
 
@@ -110,10 +111,10 @@ class LedgerService
             $this->lock($client);
 
             $cost = $quantity * $price;
-
-            if ($cost > $this->balance($client)) {
+            $balance = $this->balance($client);
+            if ($cost > $balance) {
                 throw new InsufficientFundsException(
-                    "Cannot buy {$quantity} {$ticker} at {$price}: cost {$cost} exceeds available balance {$this->balance($client)}."
+                    "Cannot buy {$quantity} {$ticker} at {$price}: cost {$cost} exceeds available balance {$balance}."
                 );
             }
             return Transaction::create([
