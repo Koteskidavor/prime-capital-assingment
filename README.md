@@ -1,58 +1,237 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Prime Capital Assingment
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+### Prerequisites
+- PHP ≥ 8.3
+- Composer
+- SQLite (bundled with PHP — nothing extra to install)
 
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local Setup
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clone the repository
+git clone https://github.com/Koteskidavor/prime-capital-assingment.git
+cd prime-capital-assingment
 
-php artisan boost:install
+# 2. Install PHP dependencies
+composer install
+
+# 3. Copy the environment file and generate an app key
+cp .env.example .env
+php artisan key:generate
+
+# 4. Run migrations and seed sample data
+php artisan migrate --seed
+
+# 5. Start the development server
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The `--seed` flag creates three sample clients (Ana, Marko, Elena) with pre-existing transactions so you can test the API immediately without entering data manually.
 
-## Contributing
+The server will be available at `http://localhost:8000`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## API Reference
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+All endpoints are under `/api` and return JSON.
 
-## Security Vulnerabilities
+### Create a client
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+POST /api/clients
+```
 
-## License
+**Request body:**
+```json
+{
+    "name": "Ana"
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Response `201`:**
+```json
+{
+    "id": 1,
+    "name": "Ana",
+    "balance": "0.00",
+    "holdings": []
+}
+```
+
+---
+
+### List all clients
+
+```
+GET /api/clients
+```
+
+**Response `200`:**
+```json
+[
+    {
+        "id": 1,
+        "name": "Ana",
+        "balance": "860.00",
+        "holdings": { "AAPL": 2 }
+    },
+    {
+        "id": 2,
+        "name": "Marko",
+        "balance": "1300.00",
+        "holdings": { "TSLA": 10, "MSFT": 8 }
+    }
+]
+```
+
+---
+
+### Get a single client
+
+```
+GET /api/clients/{id}
+```
+
+**Response `200`:**
+```json
+{
+    "id": 1,
+    "name": "Ana",
+    "balance": "860.00",
+    "holdings": { "AAPL": 2 }
+}
+```
+
+---
+
+### Record a transaction
+
+```
+POST /api/transactions
+```
+
+#### Deposit
+
+```json
+{
+    "client_id": 1,
+    "type": "deposit",
+    "amount": 1000
+}
+```
+
+#### Withdrawal
+
+```json
+{
+    "client_id": 1,
+    "type": "withdraw",
+    "amount": 200
+}
+```
+
+#### Buy
+
+```json
+{
+    "client_id": 1,
+    "type": "buy",
+    "ticker": "AAPL",
+    "quantity": 5,
+    "price": 100
+}
+```
+
+#### Sell
+
+```json
+{
+    "client_id": 1,
+    "type": "sell",
+    "ticker": "AAPL",
+    "quantity": 3,
+    "price": 120
+}
+```
+
+**Successful response `201`:**
+```json
+{
+    "id": 4,
+    "client_id": 1,
+    "type": "sell",
+    "amount": "360.00",
+    "ticker": "AAPL",
+    "quantity": 3,
+    "price": "120.00",
+    "balance": "860.00",
+    "holdings": { "AAPL": 2 }
+}
+```
+
+**Failed response `422` (rule violation):**
+```json
+{
+    "message": "Cannot withdraw 600: available balance is 500."
+}
+```
+
+---
+
+## Business Rules
+
+- A client's cash balance can **never go negative**. Attempting a withdrawal or buy that exceeds the available balance returns a `422` error and leaves the account unchanged.
+- A client **cannot sell more shares** of an instrument than they currently hold. Attempting to do so returns a `422` error and leaves the account unchanged.
+
+---
+
+## Running Tests
+
+```bash
+php artisan test
+```
+
+The test suite covers:
+
+**Successful transactions paths**
+- Deposit increases balance
+- Buy decreases balance and adds a holding
+- Sell increases balance and reduces a holding
+- Spending exactly all available cash succeeds (zero balance after buy)
+- Selling exactly all held shares succeeds (empty holdings after sell)
+
+**Business rule rejections (each also verifies account state is unchanged)**
+- Withdrawal above balance is rejected
+- Buy above balance is rejected
+- Sell above held quantity is rejected
+- Selling a ticker that was never bought is rejected
+
+**Input validation rejections**
+- Zero amount is rejected
+- Negative amount is rejected
+- Non-integer quantity (fractional shares) is rejected
+- Unknown transaction type is rejected
+- Non-existent client ID is rejected
+- Duplicate client name is rejected
+
+**Isolation**
+- Transactions on one client have no effect on another client's balance or holdings
+
+## Why this way
+
+- **Cash balance and holdings are calculated from the transaction history every time they are requested.** 
+Cash and holdings are calculated when needed because we sacrifice a bit of performance at scale to eliminate bugs related to inconcistent data and accuracy.
+
+- **Every write goes through one `LedgerService`, wrapped in a database transaction with row lock on the client.**
+Without the lock, two requests for the same client could both do the same action twice even before one is finished. The row lock forces them to wait until the first request is finished. 
+
+- **SQLite and PHP Enum**
+I chose SQLite because it's simple and easy to setup and works on any computer with simple configuration. SQLite doesnt have real native enum type so if I added one the validation would be duplicated in SQL and PHP risking one being updated and the other isn't, so I decided to use single PHP enum `TransactionType` ensures there is one place defining a type, and SQLite stores the string that the enum hands it.
+
+- **Validation happens in two separate layers.**
+Validation happens in two layers. the first is Form Requests which checks if the input is the right type, positive number, required field before the business logic and the second is LedgerService checks the business logic of whether the  client can afford the request. Separating these layers makes each layer focus on one problem making it easier to debug and reason about what could go wrong.
+
+- **Custom exceptions instead of if checks in the controller.**
+Instead of controller checking things like "does the user have enough cash?" or "do they own enough shares?" directly, that logic lives in `LedgerService` and when a rule is broken we get `InsufficientFundsException` or `InsufficientSharesException`. `bootstrap/app.php` catches exceptions in one place and turns them into 422 response with a clear message. I did this so the controller has one responsibility call the service and return what comes back.
+
