@@ -18,7 +18,7 @@ class LedgerService
     public function balance(Client $client): float
     {
         $in = $client->transactions()
-            ->where('type', [TransactionType::Deposit->value, TransactionType::Sell->value])
+            ->whereIn('type', [TransactionType::Deposit->value, TransactionType::Sell->value])
             ->sum('amount');
 
         $out = $client->transactions()
